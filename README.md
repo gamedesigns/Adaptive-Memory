@@ -67,7 +67,7 @@ The core research focuses on:
 
 ## Future Development Phases
 
-### Phase 1: Core Research Extensions (Q1 2024)
+### Phase 1: Core Research Extensions (Q1 2024-Q3 2025)
 - [ ] **Performance Analytics** - Detailed player behavior tracking
 - [ ] **A/B Testing Framework** - Compare different adaptive algorithms
 - [ ] **Extended Pattern Types** - Spatial patterns, color mixing, rhythm patterns
@@ -180,10 +180,10 @@ The MIT License is chosen for this research project because it:
 If you use this game in academic research, please cite:
 
 ```bibtex
-@software{adaptive_memory_2024,
+@software{adaptive_memory_2025,
   title={Adaptive Memory: A Research Framework for Evolving Gameplay Mechanics},
   author={Daniel Sandner},
-  year={2024},
+  year={2025},
   url={https://github.com/gamedesigns/Adaptive-Memory},
   note={Experimental game design research platform}
 }
