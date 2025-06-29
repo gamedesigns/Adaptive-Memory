@@ -2,7 +2,7 @@
 
 **A Research Game Exploring Evolving Gameplay and Novel Interactive Mechanics**
 
-[![Play Online](https://img.shields.io/badge/Play-Online-brightgreen?style=for-the-badge)](https://gamedesigns.github.io/adaptive-memory)
+[![Play Online](https://img.shields.io/badge/Play-Online-brightgreen?style=for-the-badge)](https://gamedesigns.github.io/Adaptive-Memory)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ## 🎯 Game Concept
@@ -184,7 +184,7 @@ If you use this game in academic research, please cite:
   title={Adaptive Memory: A Research Framework for Evolving Gameplay Mechanics},
   author={Daniel Sandner},
   year={2024},
-  url={https://github.com/gamedesigns/adaptive-memory},
+  url={https://github.com/gamedesigns/Adaptive-Memory},
   note={Experimental game design research platform}
 }
 ```
@@ -194,7 +194,7 @@ If you use this game in academic research, please cite:
 **Daniel Sandner**
 - Game Design Researcher
 - Exploring Novel Interactive Mechanics
-- Contact: [Your Contact Information]
+- Contact: [Adaptive Memory App - Research](https://github.com/gamedesigns/Adaptive-Memory/issues)
 
 ## Acknowledgments
 
