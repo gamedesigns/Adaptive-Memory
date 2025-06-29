@@ -2,7 +2,7 @@
 
 **A Research Game Exploring Evolving Gameplay and Novel Interactive Mechanics**
 
-[![Play Online](https://img.shields.io/badge/Play-Online-brightgreen?style=for-the-badge)](https://yourusername.github.io/adaptive-memory)
+[![Play Online](https://img.shields.io/badge/Play-Online-brightgreen?style=for-the-badge)](https://gamedesigns.github.io/adaptive-memory)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ## 🎯 Game Concept
