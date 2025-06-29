@@ -540,54 +540,6 @@
                 <button class="btn" data-difficulty="hard">Hard</button>
                 <button class="btn" data-difficulty="ultra">Ultra</button>
                 <button id="hall-toggle" class="btn">🏆 Hall of Fame</button>
-                <button id="research-toggle" class="btn">🔬 Research</button>
-            </div>
-        </div>
-
-        <!-- Research Panel -->
-        <div id="research-panel" class="hall-of-fame hidden">
-            <div class="hall-title">
-                🔬 Research Analytics
-                <div style="display: flex; gap: 8px;">
-                    <button id="export-session" class="btn" style="font-size: 12px; padding: 4px 8px;">Export Session</button>
-                    <button id="export-all" class="btn" style="font-size: 12px; padding: 4px 8px;">Export All Data</button>
-                    <button id="toggle-research-mode" class="btn" style="font-size: 12px; padding: 4px 8px;">Research Mode</button>
-                </div>
-            </div>
-            
-            <div id="research-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <!-- Current Session Stats -->
-                <div>
-                    <h4 style="margin-bottom: 8px; color: var(--text-primary);">Current Session</h4>
-                    <div id="session-analytics" style="font-size: 12px; color: var(--text-secondary);">
-                        <div>Participant ID: <span id="participant-id"></span></div>
-                        <div>A/B Test Group: <span id="ab-group"></span></div>
-                        <div>Session ID: <span id="session-id"></span></div>
-                        <div>Patterns Completed: <span id="patterns-completed">0</span></div>
-                        <div>Avg Reaction Time: <span id="avg-reaction-time">0</span>ms</div>
-                        <div>Learning Velocity: <span id="learning-velocity">0</span></div>
-                        <div>Memory Span: <span id="memory-span">0</span></div>
-                    </div>
-                </div>
-                
-                <!-- Performance Trends -->
-                <div>
-                    <h4 style="margin-bottom: 8px; color: var(--text-primary);">Performance Trends</h4>
-                    <div id="performance-chart" style="height: 120px; background: var(--bg-primary); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 12px;">
-                        Performance visualization will appear here
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Research Mode Controls -->
-            <div id="research-modes" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
-                <h4 style="margin-bottom: 8px; color: var(--text-primary);">Research Game Modes</h4>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button class="btn" data-research-mode="benchmark">Benchmark Test</button>
-                    <button class="btn" data-research-mode="memory">Memory Retention</button>
-                    <button class="btn" data-research-mode="speed">Speed vs Accuracy</button>
-                    <button class="btn" data-research-mode="interference">Interference Test</button>
-                </div>
             </div>
         </div>
 
@@ -673,28 +625,6 @@
                         mistakes: 0,
                         totalTime: 0,
                         accuracy: 100
-                    },
-                    // Research Mode Settings
-                    researchMode: false,
-                    abTestGroup: Math.random() > 0.5 ? 'A' : 'B', // Random A/B assignment
-                    adaptiveAlgorithm: 'standard' // 'standard', 'aggressive', 'gentle'
-                };
-
-                // Scientific Data Collection
-                this.researchData = {
-                    sessionId: this.generateSessionId(),
-                    participantId: this.getOrCreateParticipantId(),
-                    startTime: new Date().toISOString(),
-                    abTestGroup: this.state.abTestGroup,
-                    patterns: [], // Individual pattern performance data
-                    sessions: JSON.parse(localStorage.getItem('adaptiveMemoryResearchSessions') || '[]'),
-                    rawEvents: [], // Granular interaction data
-                    cognitiveMetrics: {
-                        reactionTimes: [],
-                        hesitationEvents: 0,
-                        errorPositions: {},
-                        learningVelocity: 0,
-                        memorySpan: 0
                     }
                 };
 
@@ -718,18 +648,6 @@
                         patternLength: (level) => Math.min(6 + Math.floor(level / 2), 15),
                         showTime: 500,
                         colors: ['blue', 'red', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan']
-                    },
-                    // Research modes
-                    benchmark: {
-                        patternLength: (level) => 5, // Fixed length for standardized testing
-                        showTime: 800,
-                        colors: ['blue', 'red', 'green', 'yellow']
-                    },
-                    memory: {
-                        patternLength: (level) => Math.min(3 + level, 12),
-                        showTime: 1000,
-                        colors: ['blue', 'red', 'green', 'yellow'],
-                        memoryDelay: 2000 // Delay before input phase
                     }
                 };
 
@@ -741,50 +659,8 @@
                 this.audioContext = null;
                 this.displayTimer = null;
                 this.scores = JSON.parse(localStorage.getItem('adaptiveMemoryScores') || '[]');
-                this.currentPatternStartTime = null;
-                this.patternDisplayEndTime = null;
                 
                 this.init();
-            }
-
-            generateSessionId() {
-                return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            }
-
-            getOrCreateParticipantId() {
-                let participantId = localStorage.getItem('adaptiveMemoryParticipantId');
-                if (!participantId) {
-                    participantId = 'participant_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                    localStorage.setItem('adaptiveMemoryParticipantId', participantId);
-                }
-                return participantId;
-            }
-
-            logEvent(eventType, data = {}) {
-                const event = {
-                    timestamp: Date.now(),
-                    type: eventType,
-                    gameState: this.state.gameState,
-                    level: this.state.level,
-                    patternLength: this.state.pattern.length,
-                    patternType: this.state.patternType,
-                    difficulty: this.state.difficulty,
-                    ...data
-                };
-                this.researchData.rawEvents.push(event);
-            }
-
-            calculateAdaptiveDifficulty() {
-                // A/B Test: Different adaptive algorithms
-                if (this.state.abTestGroup === 'A') {
-                    // Standard algorithm (current)
-                    return this.difficulties[this.state.difficulty].patternLength(this.state.level);
-                } else {
-                    // Group B: More aggressive scaling
-                    const baseLength = this.difficulties[this.state.difficulty].patternLength(this.state.level);
-                    const performanceBonus = this.state.combo > 5 ? 1 : 0;
-                    return Math.min(baseLength + performanceBonus, 15);
-                }
             }
 
             init() {
@@ -793,8 +669,6 @@
                 this.updateUI();
                 this.createGameBoard();
                 this.updateHallOfFame();
-                this.initResearchPanel();
-                this.logEvent('game_initialized', { abTestGroup: this.state.abTestGroup });
             }
 
             async initAudio() {
@@ -826,17 +700,6 @@
                 // Hall of Fame controls
                 document.getElementById('hall-toggle').addEventListener('click', () => this.toggleHallOfFame());
                 document.getElementById('clear-scores').addEventListener('click', () => this.clearScores());
-
-                // Research Panel controls
-                document.getElementById('research-toggle').addEventListener('click', () => this.toggleResearchPanel());
-                document.getElementById('export-session').addEventListener('click', () => this.exportSessionData());
-                document.getElementById('export-all').addEventListener('click', () => this.exportAllData());
-                document.getElementById('toggle-research-mode').addEventListener('click', () => this.toggleResearchMode());
-
-                // Research mode buttons
-                document.querySelectorAll('[data-research-mode]').forEach(btn => {
-                    btn.addEventListener('click', (e) => this.startResearchMode(e.target.dataset.researchMode));
-                });
 
                 // Keyboard controls
                 document.addEventListener('keydown', (e) => {
@@ -913,114 +776,8 @@
 
             toggleHallOfFame() {
                 const hall = document.getElementById('hall-of-fame');
-                const panel = document.getElementById('research-panel');
-                
-                // Close research panel if open
-                if (!panel.classList.contains('hidden')) {
-                    panel.classList.add('hidden');
-                }
-                
                 hall.classList.toggle('hidden');
                 this.updateHallOfFame();
-            }
-
-            toggleResearchPanel() {
-                const panel = document.getElementById('research-panel');
-                const hall = document.getElementById('hall-of-fame');
-                
-                // Close hall of fame if open
-                if (!hall.classList.contains('hidden')) {
-                    hall.classList.add('hidden');
-                }
-                
-                panel.classList.toggle('hidden');
-                if (!panel.classList.contains('hidden')) {
-                    this.updateResearchPanel();
-                }
-            }
-
-            toggleResearchMode() {
-                this.state.researchMode = !this.state.researchMode;
-                const modesDiv = document.getElementById('research-modes');
-                const btn = document.getElementById('toggle-research-mode');
-                
-                if (this.state.researchMode) {
-                    modesDiv.style.display = 'block';
-                    btn.textContent = 'Exit Research Mode';
-                    btn.classList.add('active');
-                    this.logEvent('research_mode_enabled');
-                } else {
-                    modesDiv.style.display = 'none';
-                    btn.textContent = 'Research Mode';
-                    btn.classList.remove('active');
-                    this.logEvent('research_mode_disabled');
-                }
-            }
-
-            startResearchMode(mode) {
-                this.logEvent('research_mode_started', { mode });
-                
-                switch (mode) {
-                    case 'benchmark':
-                        this.state.difficulty = 'benchmark';
-                        this.resetGame();
-                        break;
-                    case 'memory':
-                        this.state.difficulty = 'memory';
-                        this.resetGame();
-                        break;
-                    case 'speed':
-                        // Implement speed vs accuracy mode
-                        alert('Speed vs Accuracy mode: Focus on quick responses while maintaining accuracy!');
-                        this.resetGame();
-                        break;
-                    case 'interference':
-                        // Add visual distractors during pattern display
-                        alert('Interference mode: Additional visual elements will appear during patterns!');
-                        this.resetGame();
-                        break;
-                }
-            }
-
-            showPattern() {
-                if (this.state.isPaused) return;
-                
-                if (this.state.displayIndex >= this.state.pattern.length) {
-                    this.patternDisplayEndTime = Date.now(); // Track when pattern display ends
-                    this.state.gameState = 'ready';
-                    this.updateUI();
-                    this.playSound(660, 500);
-                    
-                    // Add memory delay for memory research mode
-                    const delay = this.state.difficulty === 'memory' ? 
-                        this.difficulties.memory.memoryDelay : 1200;
-                    
-                    this.displayTimer = setTimeout(() => {
-                        if (!this.state.isPaused) {
-                            this.state.gameState = 'input';
-                            this.updateUI();
-                            this.playSound(880, 300);
-                            this.currentPatternStartTime = Date.now(); // Track input phase start
-                        }
-                    }, delay);
-                    return;
-                }
-
-                const color = this.state.pattern[this.state.displayIndex];
-                this.highlightColor(color);
-                this.playSound(this.colorFrequencies[color], 300);
-
-                this.displayTimer = setTimeout(() => {
-                    if (!this.state.isPaused) {
-                        this.clearHighlight();
-                        setTimeout(() => {
-                            if (!this.state.isPaused) {
-                                this.state.displayIndex++;
-                                this.showPattern();
-                            }
-                        }, this.difficulties[this.state.difficulty].showTime * 0.4);
-                    }
-                }, this.difficulties[this.state.difficulty].showTime * 0.6);
             }
 
             playSound(frequency, duration = 200) {
@@ -1145,18 +902,6 @@
             handleColorClick(color) {
                 if (this.state.gameState !== 'input' || this.state.isPaused) return;
 
-                const clickTime = Date.now();
-                const reactionTime = clickTime - this.patternDisplayEndTime;
-                
-                // Log detailed click data
-                this.logEvent('color_click', {
-                    color: color,
-                    expectedColor: this.state.pattern[this.state.userPattern.length],
-                    position: this.state.userPattern.length,
-                    reactionTime: reactionTime,
-                    isCorrect: color === this.state.pattern[this.state.userPattern.length]
-                });
-
                 this.highlightColor(color);
                 this.playSound(this.colorFrequencies[color], 150);
                 setTimeout(() => this.clearHighlight(), 200);
@@ -1169,11 +914,6 @@
                     this.state.combo = 0;
                     this.state.sessionStats.mistakes++;
                     
-                    // Record error position for research
-                    const errorPos = this.state.userPattern.length - 1;
-                    this.researchData.cognitiveMetrics.errorPositions[errorPos] = 
-                        (this.researchData.cognitiveMetrics.errorPositions[errorPos] || 0) + 1;
-                    
                     if (this.state.lives <= 0) {
                         this.gameOver();
                     } else {
@@ -1182,197 +922,11 @@
                     return;
                 }
 
-                // Record successful reaction time
-                this.researchData.cognitiveMetrics.reactionTimes.push(reactionTime);
-
                 if (this.state.userPattern.length === this.state.pattern.length) {
                     this.completePattern();
                 }
 
                 this.updateUI();
-                this.updateResearchPanel();
-            }
-
-            // Research Analytics Methods
-            initResearchPanel() {
-                document.getElementById('participant-id').textContent = 
-                    this.researchData.participantId.split('_')[1].substr(0, 8) + '...';
-                document.getElementById('ab-group').textContent = this.state.abTestGroup;
-                document.getElementById('session-id').textContent = 
-                    this.researchData.sessionId.split('_')[1].substr(0, 8) + '...';
-            }
-
-            updateResearchPanel() {
-                if (document.getElementById('research-panel').classList.contains('hidden')) return;
-
-                const metrics = this.calculateCognitiveMetrics();
-                
-                document.getElementById('patterns-completed').textContent = this.state.sessionStats.patterns;
-                document.getElementById('avg-reaction-time').textContent = 
-                    Math.round(metrics.avgReactionTime || 0);
-                document.getElementById('learning-velocity').textContent = 
-                    metrics.learningVelocity.toFixed(2);
-                document.getElementById('memory-span').textContent = 
-                    Math.round(metrics.memorySpan || 0);
-                
-                this.updatePerformanceChart();
-            }
-
-            calculateCognitiveMetrics() {
-                const reactionTimes = this.researchData.cognitiveMetrics.reactionTimes;
-                const avgReactionTime = reactionTimes.length > 0 ? 
-                    reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length : 0;
-
-                // Learning velocity: improvement rate over last 5 patterns
-                const recentPatterns = this.researchData.patterns.slice(-5);
-                const learningVelocity = recentPatterns.length > 1 ? 
-                    (recentPatterns[recentPatterns.length - 1]?.accuracy || 0) - 
-                    (recentPatterns[0]?.accuracy || 0) : 0;
-
-                // Memory span: maximum pattern length successfully completed
-                const memorySpan = Math.max(...this.researchData.patterns.map(p => p.patternLength || 0), 0);
-
-                return {
-                    avgReactionTime,
-                    learningVelocity,
-                    memorySpan
-                };
-            }
-
-            updatePerformanceChart() {
-                const chart = document.getElementById('performance-chart');
-                const patterns = this.researchData.patterns.slice(-10); // Last 10 patterns
-                
-                if (patterns.length < 2) {
-                    chart.innerHTML = '<div style="color: var(--text-secondary); font-size: 12px;">Need more data for visualization</div>';
-                    return;
-                }
-
-                // Simple ASCII-style chart
-                const maxAccuracy = Math.max(...patterns.map(p => p.accuracy));
-                const minAccuracy = Math.min(...patterns.map(p => p.accuracy));
-                const range = maxAccuracy - minAccuracy || 1;
-
-                let chartHTML = '<div style="display: flex; align-items: end; height: 100px; gap: 2px; padding: 10px;">';
-                patterns.forEach((pattern, index) => {
-                    const height = ((pattern.accuracy - minAccuracy) / range) * 80 + 10;
-                    const color = pattern.accuracy > 80 ? '#10b981' : pattern.accuracy > 60 ? '#f59e0b' : '#ef4444';
-                    chartHTML += `<div style="background: ${color}; width: 8px; height: ${height}px; border-radius: 2px;" title="Pattern ${index + 1}: ${pattern.accuracy}%"></div>`;
-                });
-                chartHTML += '</div>';
-                
-                chart.innerHTML = chartHTML;
-            }
-
-            exportSessionData() {
-                const sessionData = {
-                    metadata: {
-                        sessionId: this.researchData.sessionId,
-                        participantId: this.researchData.participantId,
-                        abTestGroup: this.state.abTestGroup,
-                        startTime: this.researchData.startTime,
-                        endTime: new Date().toISOString(),
-                        gameVersion: '1.0.0'
-                    },
-                    sessionStats: this.state.sessionStats,
-                    cognitiveMetrics: this.researchData.cognitiveMetrics,
-                    patterns: this.researchData.patterns,
-                    rawEvents: this.researchData.rawEvents,
-                    aggregatedMetrics: this.calculateCognitiveMetrics()
-                };
-
-                this.downloadJSON(sessionData, `adaptive_memory_session_${this.researchData.sessionId}.json`);
-            }
-
-            exportAllData() {
-                const allSessions = JSON.parse(localStorage.getItem('adaptiveMemoryResearchSessions') || '[]');
-                const allData = {
-                    metadata: {
-                        exportDate: new Date().toISOString(),
-                        participantId: this.researchData.participantId,
-                        totalSessions: allSessions.length,
-                        gameVersion: '1.0.0'
-                    },
-                    currentSession: {
-                        sessionId: this.researchData.sessionId,
-                        patterns: this.researchData.patterns,
-                        cognitiveMetrics: this.researchData.cognitiveMetrics
-                    },
-                    historicalSessions: allSessions,
-                    hallOfFame: this.scores,
-                    longitudinalAnalysis: this.calculateLongitudinalMetrics(allSessions)
-                };
-
-                this.downloadJSON(allData, `adaptive_memory_complete_data_${this.researchData.participantId}.json`);
-            }
-
-            calculateLongitudinalMetrics(sessions) {
-                if (sessions.length < 2) return {};
-
-                const sessionAccuracies = sessions.map(s => s.finalAccuracy || 0);
-                const sessionLevels = sessions.map(s => s.maxLevel || 0);
-                
-                return {
-                    improvementRate: sessionAccuracies.length > 1 ? 
-                        (sessionAccuracies[sessionAccuracies.length - 1] - sessionAccuracies[0]) / sessions.length : 0,
-                    levelProgression: sessionLevels,
-                    retentionRate: this.calculateRetentionRate(sessions),
-                    plateauDetection: this.detectPerformancePlateaus(sessionAccuracies)
-                };
-            }
-
-            calculateRetentionRate(sessions) {
-                // Simple retention: compare first pattern performance across sessions
-                const firstPatternAccuracies = sessions.map(s => 
-                    s.patterns && s.patterns[0] ? s.patterns[0].accuracy : 0
-                ).filter(acc => acc > 0);
-                
-                return firstPatternAccuracies.length > 1 ? 
-                    firstPatternAccuracies[firstPatternAccuracies.length - 1] / firstPatternAccuracies[0] : 1;
-            }
-
-            detectPerformancePlateaus(accuracies) {
-                const plateauThreshold = 5; // Minimum 5% improvement to not be considered plateau
-                let plateauCount = 0;
-                
-                for (let i = 1; i < accuracies.length; i++) {
-                    if (Math.abs(accuracies[i] - accuracies[i-1]) < plateauThreshold) {
-                        plateauCount++;
-                    }
-                }
-                
-                return {
-                    plateauSessions: plateauCount,
-                    plateauPercentage: accuracies.length > 0 ? (plateauCount / accuracies.length) * 100 : 0
-                };
-            }
-
-            downloadJSON(data, filename) {
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                a.click();
-                URL.revokeObjectURL(url);
-            }
-
-            saveSessionData() {
-                const sessionSummary = {
-                    sessionId: this.researchData.sessionId,
-                    participantId: this.researchData.participantId,
-                    abTestGroup: this.state.abTestGroup,
-                    date: new Date().toISOString(),
-                    patterns: this.researchData.patterns,
-                    finalAccuracy: this.state.sessionStats.accuracy,
-                    maxLevel: this.state.level,
-                    cognitiveMetrics: this.researchData.cognitiveMetrics,
-                    totalTime: this.state.sessionStats.totalTime
-                };
-
-                const sessions = JSON.parse(localStorage.getItem('adaptiveMemoryResearchSessions') || '[]');
-                sessions.push(sessionSummary);
-                localStorage.setItem('adaptiveMemoryResearchSessions', JSON.stringify(sessions));
             }
 
             gameOver() {
