@@ -184,7 +184,7 @@ If you use this game in academic research, please cite:
   title={Adaptive Memory: A Research Framework for Evolving Gameplay Mechanics},
   author={Daniel Sandner},
   year={2024},
-  url={https://github.com/yourusername/adaptive-memory},
+  url={https://github.com/gamedesigns/adaptive-memory},
   note={Experimental game design research platform}
 }
 ```
