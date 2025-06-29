@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Memory - Pattern Memory Game</title>
+    <meta name="description" content="Adaptive Memory - A pattern memory game that adapts to your skill level">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6e6fa 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 32px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .stats {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .lives {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .life {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #d1d5db;
+            transition: all 0.3s;
+        }
+
+        .life.active {
+            background: #ef4444;
+            animation: pulse 2s infinite;
+        }
+
+        .combo {
+            color: #ea580c;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            color: #374151;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            background: #f9fafb;
+            transform: translateY(-1px);
+        }
+
+        .btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn.primary {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            padding: 12px 32px;
+            font-size: 16px;
+        }
+
+        .btn.primary:hover {
+            background: #2563eb;
+        }
+
+        .pattern-type {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .pattern-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #ede9fe;
+            color: #7c3aed;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .color-btn {
+            height: 100px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .color-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .color-btn.active {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 4px white, 0 0 20px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        .color-btn.bounce {
+            animation: bounce 0.6s;
+        }
+
+        .color-btn.scale {
+            animation: scaleAnim 0.6s;
+        }
+
+        .blue { background: #3b82f6; }
+        .red { background: #ef4444; }
+        .green { background: #10b981; }
+        .yellow { background: #f59e0b; }
+        .purple { background: #8b5cf6; }
+
+        .feedback {
+            text-align: center;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            margin-bottom: 24px;
+        }
+
+        .feedback-text {
+            font-size: 20px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .feedback-text.showing { color: #3b82f6; animation: pulse 2s infinite; }
+        .feedback-text.ready { color: #f59e0b; }
+        .feedback-text.input { color: #10b981; animation: bounce 1s infinite; }
+        .feedback-text.failed { color: #ef4444; }
+
+        .feedback-sub {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .progress {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #d1d5db;
+            transition: all 0.3s;
+        }
+
+        .progress-dot.completed { background: #10b981; transform: scale(1.2); }
+        .progress-dot.current { background: #3b82f6; transform: scale(1.2); }
+
+        .instructions {
+            background: #f0f8ff;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: #1e40af;
+            margin-bottom: 24px;
+        }
+
+        .instructions h3 {
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .instructions ul {
+            text-align: left;
+            max-width: 400px;
+            margin: 0 auto;
+            list-style: none;
+        }
+
+        .instructions li {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .instructions li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+
+        .sound-btn {
+            width: 32px;
+            height: 32px;
+            padding: 6px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% { transform: translateY(0); }
+            40%, 43% { transform: translateY(-8px); }
+            70% { transform: translateY(-4px); }
+            90% { transform: translateY(-2px); }
+        }
+
+        @keyframes scaleAnim {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 20px; margin: 10px; }
+            .title { font-size: 2rem; }
+            .header { flex-direction: column; text-align: center; }
+            .stats { justify-content: center; }
+            .game-board { grid-template-columns: repeat(2, 1fr); }
+            .color-btn { height: 80px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1 class="title">Adaptive Memory</h1>
+                <div class="stats">
+                    <span>Level: <strong id="level">1</strong></span>
+                    <span>Score: <strong id="score">0</strong></span>
+                    <span id="best-score" style="display: none;">Best: <strong id="best-value">0</strong></span>
+                    
+                    <div class="lives">
+                        <span>Lives:</span>
+                        <div id="lives-display"></div>
+                    </div>
+                    
+                    <div id="combo-display" style="display: none;" class="combo"></div>
+                    
+                    <button id="sound-btn" class="btn sound-btn" title="Toggle Sound">🔊</button>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn active" data-difficulty="easy">Easy</button>
+                <button class="btn" data-difficulty="normal">Normal</button>
+                <button class="btn" data-difficulty="hard">Hard</button>
+            </div>
+        </div>
+
+        <!-- Pattern Type Indicator -->
+        <div id="pattern-type" class="pattern-type" style="display: none;">
+            <span class="pattern-badge" id="pattern-badge"></span>
+        </div>
+
+        <!-- Game Board -->
+        <div id="game-board" class="game-board"></div>
+
+        <!-- Feedback -->
+        <div class="feedback">
+            <div id="feedback-text" class="feedback-text"></div>
+            <div id="feedback-sub" class="feedback-sub"></div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+            <button id="start-btn" class="btn primary">🎮 Start Game</button>
+            <button id="play-again-btn" class="btn primary" style="display: none;">🔄 Play Again</button>
+            <button id="new-record-btn" class="btn" style="display: none;" disabled>🏆 New Record!</button>
+        </div>
+
+        <!-- Progress -->
+        <div id="progress" class="progress"></div>
+
+        <!-- Instructions -->
+        <div id="instructions" class="instructions">
+            <h3>How to Play:</h3>
+            <ul>
+                <li>Watch the color sequence carefully</li>
+                <li>Repeat the pattern by clicking colors in order</li>
+                <li>Get <span id="combos-needed">10</span> combos in a row to regenerate a life</li>
+                <li>Special patterns unlock at higher levels!</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        class AdaptiveMemory {
+            constructor() {
+                this.state = {
+                    level: 1,
+                    score: 0,
+                    bestScore: parseInt(localStorage.getItem('adaptiveMemoryBestScore') || '0'),
+                    pattern: [],
+                    displayIndex: -1,
+                    userPattern: [],
+                    gameState: 'waiting',
+                    activeColor: null,
+                    soundEnabled: true,
+                    combo: 0,
+                    longestCombo: 0,
+                    lastComboLifeRegenerated: 0,
+                    animation: 'bounce',
+                    lives: 3,
+                    patternType: 'normal',
+                    difficulty: 'easy'
+                };
+
+                this.difficulties = {
+                    easy: {
+                        patternLength: (level) => Math.min(3 + Math.floor(level / 2), 8),
+                        showTime: 1200,
+                        colors: ['blue', 'red', 'green']
+                    },
+                    normal: {
+                        patternLength: (level) => Math.min(4 + Math.floor(level / 2), 10),
+                        showTime: 900,
+                        colors: ['blue', 'red', 'green', 'yellow']
+                    },
+                    hard: {
+                        patternLength: (level) => Math.min(5 + Math.floor(level / 2), 12),
+                        showTime: 650,
+                        colors: ['blue', 'red', 'green', 'yellow', 'purple']
+                    }
+                };
+
+                this.colorFrequencies = {
+                    blue: 262,
+                    red: 330,
+                    green: 392,
+                    yellow: 440,
+                    purple: 523
+                };
+
+                this.audioContext = null;
+                this.displayTimer = null;
+                
+                this.init();
+            }
+
+            init() {
+                this.initAudio();
+                this.bindEvents();
+                this.updateUI();
+                this.createGameBoard();
+            }
+
+            async initAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (error) {
+                    console.warn('Audio not supported:', error);
+                }
+            }
+
+            bindEvents() {
+                document.getElementById('start-btn').addEventListener('click', () => this.startRound());
+                document.getElementById('play-again-btn').addEventListener('click', () => this.resetGame());
+                document.getElementById('sound-btn').addEventListener('click', () => this.toggleSound());
+
+                document.querySelectorAll('[data-difficulty]').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.changeDifficulty(e.target.dataset.difficulty));
+                });
+            }
+
+            createGameBoard() {
+                const board = document.getElementById('game-board');
+                board.innerHTML = '';
+                
+                this.difficulties[this.state.difficulty].colors.forEach(color => {
+                    const btn = document.createElement('button');
+                    btn.className = `color-btn ${color}`;
+                    btn.addEventListener('click', () => this.handleColorClick(color));
+                    board.appendChild(btn);
+                });
+            }
+
+            changeDifficulty(newDifficulty) {
+                this.state.difficulty = newDifficulty;
+                document.querySelectorAll('[data-difficulty]').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.difficulty === newDifficulty);
+                });
+                this.createGameBoard();
+                this.resetGame();
+            }
+
+            toggleSound() {
+                this.state.soundEnabled = !this.state.soundEnabled;
+                document.getElementById('sound-btn').textContent = this.state.soundEnabled ? '🔊' : '🔇';
+            }
+
+            playSound(frequency, duration = 200) {
+                if (!this.state.soundEnabled || !this.audioContext) return;
+                
+                try {
+                    const oscillator = this.audioContext.createOscillator();
+                    const gain = this.audioContext.createGain();
+                    
+                    oscillator.connect(gain);
+                    gain.connect(this.audioContext.destination);
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = 'sine';
+                    
+                    const currentTime = this.audioContext.currentTime;
+                    gain.gain.setValueAtTime(0.1, currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, currentTime + duration / 1000);
+                    
+                    oscillator.start(currentTime);
+                    oscillator.stop(currentTime + duration / 1000);
+                } catch (error) {
+                    console.warn('Sound playback failed:', error);
+                }
+            }
+
+            getPatternType(level) {
+                if (level < 4) return 'normal';
+                if (level < 7) return Math.random() > 0.5 ? 'normal' : 'reverse';
+                return ['normal', 'reverse', 'double'][Math.floor(Math.random() * 3)];
+            }
+
+            generatePattern() {
+                const length = this.difficulties[this.state.difficulty].patternLength(this.state.level);
+                const colors = this.difficulties[this.state.difficulty].colors;
+                const basePattern = Array.from({ length }, () => 
+                    colors[Math.floor(Math.random() * colors.length)]
+                );
+                
+                this.state.patternType = this.getPatternType(this.state.level);
+                
+                switch (this.state.patternType) {
+                    case 'reverse':
+                        return [...basePattern].reverse();
+                    case 'double':
+                        return basePattern.flatMap(color => [color, color]);
+                    default:
+                        return basePattern;
+                }
+            }
+
+            getCombosNeededForLife() {
+                return 10 + Math.floor(this.state.level / 2) * 5;
+            }
+
+            startRound() {
+                this.state.pattern = this.generatePattern();
+                this.state.userPattern = [];
+                this.state.gameState = 'showing';
+                this.state.displayIndex = 0;
+                this.updateUI();
+                this.showPattern();
+            }
+
+            showPattern() {
+                if (this.state.displayIndex >= this.state.pattern.length) {
+                    this.state.gameState = 'ready';
+                    this.updateUI();
+                    this.playSound(660, 500);
+                    
+                    setTimeout(() => {
+                        this.state.gameState = 'input';
+                        this.updateUI();
+                        this.playSound(880, 300);
+                    }, 1200);
+                    return;
+                }
+
+                const color = this.state.pattern[this.state.displayIndex];
+                this.highlightColor(color);
+                this.playSound(this.colorFrequencies[color], 300);
+
+                this.displayTimer = setTimeout(() => {
+                    this.clearHighlight();
+                    setTimeout(() => {
+                        this.state.displayIndex++;
+                        this.showPattern();
+                    }, this.difficulties[this.state.difficulty].showTime * 0.4);
+                }, this.difficulties[this.state.difficulty].showTime * 0.6);
+            }
+
+            highlightColor(color) {
+                document.querySelectorAll('.color-btn').forEach(btn => {
+                    if (btn.classList.contains(color)) {
+                        btn.classList.add('active');
+                        if (this.state.level > 5) {
+                            btn.classList.add(this.state.animation);
+                        } else {
+                            btn.classList.add('bounce');
+                        }
+                    }
+                });
+            }
+
+            clearHighlight() {
+                document.querySelectorAll('.color-btn').forEach(btn => {
+                    btn.classList.remove('active', 'bounce', 'scale');
+                });
+            }
+
+            handleColorClick(color) {
+                if (this.state.gameState !== 'input') return;
+
+                this.highlightColor(color);
+                this.playSound(this.colorFrequencies[color], 150);
+                setTimeout(() => this.clearHighlight(), 200);
+
+                this.state.userPattern.push(color);
+
+                if (color !== this.state.pattern[this.state.userPattern.length - 1]) {
+                    this.playSound(150, 800);
+                    this.state.lives--;
+                    this.state.combo = 0;
+                    
+                    if (this.state.lives <= 0) {
+                        this.gameOver();
+                    } else {
+                        this.retryPattern();
+                    }
+                    return;
+                }
+
+                if (this.state.userPattern.length === this.state.pattern.length) {
+                    this.completePattern();
+                }
+
+                this.updateUI();
+            }
+
+            gameOver() {
+                this.state.gameState = 'failed';
+                if (this.state.score > this.state.bestScore) {
+                    this.state.bestScore = this.state.score;
+                    localStorage.setItem('adaptiveMemoryBestScore', this.state.bestScore.toString());
+                }
+                this.playSound(100, 1000);
+                this.updateUI();
+            }
+
+            retryPattern() {
+                this.updateUI();
+                setTimeout(() => {
+                    this.state.userPattern = [];
+                    this.state.displayIndex = 0;
+                    this.state.gameState = 'showing';
+                    this.updateUI();
+                    this.showPattern();
+                }, 1800);
+            }
+
+            completePattern() {
+                this.state.combo++;
+                
+                if (this.state.combo > this.state.longestCombo) {
+                    this.state.longestCombo = this.state.combo;
+                }
+                
+                const combosNeeded = this.getCombosNeededForLife();
+                
+                if (this.state.combo >= combosNeeded && 
+                    this.state.combo > this.state.lastComboLifeRegenerated && 
+                    this.state.lives < 3) {
+                    
+                    this.state.lives = Math.min(this.state.lives + 1, 3);
+                    this.state.lastComboLifeRegenerated = this.state.combo;
+                    this.playSound(880, 1200);
+                } else {
+                    const comboBonus = Math.floor(this.state.combo * 0.6 * 
+                        this.difficulties[this.state.difficulty].patternLength(this.state.level));
+                    const levelScore = this.state.level * 
+                        this.difficulties[this.state.difficulty].patternLength(this.state.level);
+                    const patternTypeBonus = this.state.patternType !== 'normal' ? 
+                        Math.floor(levelScore * 0.5) : 0;
+                    
+                    this.state.score += levelScore + comboBonus + patternTypeBonus;
+                    this.state.level++;
+                    
+                    if (this.state.level > 5) {
+                        this.state.animation = this.state.animation === 'bounce' ? 'scale' : 'bounce';
+                    }
+                    
+                    this.playSound(523, 400);
+                }
+                
+                this.updateUI();
+                setTimeout(() => this.startRound(), 1800);
+            }
+
+            resetGame() {
+                if (this.displayTimer) {
+                    clearTimeout(this.displayTimer);
+                }
+                
+                this.state = {
+                    ...this.state,
+                    level: 1,
+                    score: 0,
+                    pattern: [],
+                    displayIndex: -1,
+                    userPattern: [],
+                    gameState: 'waiting',
+                    activeColor: null,
+                    combo: 0,
+                    longestCombo: 0,
+                    lastComboLifeRegenerated: 0,
+                    animation: 'bounce',
+                    lives: 3,
+                    patternType: 'normal'
+                };
+                
+                this.clearHighlight();
+                this.updateUI();
+            }
+
+            updateUI() {
+                // Update stats
+                document.getElementById('level').textContent = this.state.level;
+                document.getElementById('score').textContent = this.state.score.toLocaleString();
+                
+                if (this.state.bestScore > 0) {
+                    document.getElementById('best-score').style.display = 'inline';
+                    document.getElementById('best-value').textContent = this.state.bestScore.toLocaleString();
+                }
+
+                // Update lives
+                const livesDisplay = document.getElementById('lives-display');
+                livesDisplay.innerHTML = '';
+                for (let i = 0; i < 3; i++) {
+                    const life = document.createElement('div');
+                    life.className = `life ${i < this.state.lives ? 'active' : ''}`;
+                    livesDisplay.appendChild(life);
+                }
+
+                // Update combo
+                const comboDisplay = document.getElementById('combo-display');
+                if (this.state.combo > 1) {
+                    const combosNeeded = this.getCombosNeededForLife();
+                    comboDisplay.style.display = 'block';
+                    comboDisplay.innerHTML = `${this.state.combo}x Combo! <span style="font-size: 12px;">(${Math.max(0, combosNeeded - this.state.combo)} to life)</span>`;
+                } else {
+                    comboDisplay.style.display = 'none';
+                }
+
+                // Update pattern type
+                const patternTypeDiv = document.getElementById('pattern-type');
+                const patternBadge = document.getElementById('pattern-badge');
+                if (this.state.patternType !== 'normal') {
+                    patternTypeDiv.style.display = 'block';
+                    patternBadge.textContent = this.state.patternType === 'reverse' ? 
+                        '🔄 Reverse Pattern!' : '✌️ Double Tap Pattern!';
+                } else {
+                    patternTypeDiv.style.display = 'none';
+                }
+
+                // Update feedback
+                this.updateFeedback();
+
+                // Update buttons
+                this.updateButtons();
+
+                // Update progress
+                this.updateProgress();
+
+                // Update instructions
+                document.getElementById('combos-needed').textContent = this.getCombosNeededForLife();
+                document.getElementById('instructions').style.display = 
+                    this.state.gameState === 'waiting' ? 'block' : 'none';
+            }
+
+            updateFeedback() {
+                const feedbackText = document.getElementById('feedback-text');
+                const feedbackSub = document.getElementById('feedback-sub');
+                
+                feedbackText.className = `feedback-text ${this.state.gameState}`;
+                feedbackSub.textContent = '';
+
+                switch (this.state.gameState) {
+                    case 'waiting':
+                        feedbackText.textContent = '';
+                        break;
+                    case 'showing':
+                        feedbackText.textContent = 'Watch the pattern...';
+                        break;
+                    case 'ready':
+                        feedbackText.textContent = 'Get Ready...';
+                        break;
+                    case 'input':
+                        feedbackText.textContent = 'GO! Repeat the pattern!';
+                        break;
+                    case 'failed':
+                        if (this.state.score === this.state.bestScore && this.state.score > 0) {
+                            feedbackText.textContent = `Game Over! NEW BEST SCORE: ${this.state.score.toLocaleString()}! 🎉`;
+                        } else {
+                            feedbackText.textContent = `Game Over! Final Score: ${this.state.score.toLocaleString()}`;
+                            if (this.state.bestScore > 0) {
+                                feedbackSub.textContent = `Best: ${this.state.bestScore.toLocaleString()}`;
+                            }
+                        }
+                        if (this.state.longestCombo > 1) {
+                            feedbackSub.textContent += (feedbackSub.textContent ? ' | ' : '') + 
+                                `Longest combo: ${this.state.longestCombo}x`;
+                        }
+                        break;
+                }
+            }
+
+            updateButtons() {
+                document.getElementById('start-btn').style.display = 
+                    this.state.gameState === 'waiting' ? 'inline-block' : 'none';
+                document.getElementById('play-again-btn').style.display = 
+                    this.state.gameState === 'failed' ? 'inline-block' : 'none';
+                document.getElementById('new-record-btn').style.display = 
+                    (this.state.gameState === 'failed' && this.state.score === this.state.bestScore && this.state.score > 0) ? 'inline-block' : 'none';
+
+                // Disable difficulty buttons during gameplay
+                document.querySelectorAll('[data-difficulty]').forEach(btn => {
+                    btn.disabled = this.state.gameState === 'showing' || this.state.gameState === 'input';
+                });
+            }
+
+            updateProgress() {
+                const progress = document.getElementById('progress');
+                progress.innerHTML = '';
+                
+                if (this.state.pattern.length > 0) {
+                    this.state.pattern.forEach((_, index) => {
+                        const dot = document.createElement('div');
+                        dot.className = 'progress-dot';
+                        
+                        if (index < this.state.userPattern.length) {
+                            dot.classList.add('completed');
+                        } else if (this.state.gameState === 'showing' && index === this.state.displayIndex) {
+                            dot.classList.add('current');
+                        }
+                        
+                        progress.appendChild(dot);
+                    });
+                }
+            }
+        }
+
+        // Initialize game when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new AdaptiveMemory();
+        });
+    </script>
+</body>
+</html>
