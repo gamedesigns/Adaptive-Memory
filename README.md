@@ -206,6 +206,6 @@ This research game is part of ongoing exploration into:
 
 ---
 
-**🎮 [Play Adaptive Memory Online](https://gamedesigns.github.io/adaptive-memory)**
+**🎮 [Play Adaptive Memory Online](https://gamedesigns.github.io/Adaptive-Memory)**
 
 *An experimental journey into the future of adaptive gameplay mechanics.*
